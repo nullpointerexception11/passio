@@ -16,7 +16,9 @@ import {
   Moon, 
   ShieldCheck, 
   EyeOff, 
-  HardDrive 
+  HardDrive,
+  Home,
+  Archive
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -51,9 +53,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, []);
 
   const navItems = [
-    { path: '/', label: 'Focus', icon: PenTool },
-    { path: '/library', label: 'Library', icon: BookOpen },
-    { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/', label: 'Ana Salon', icon: Home },
+    { path: '/focus', label: 'Yazıhane', icon: PenTool },
+    { path: '/library', label: 'Kütüphane', icon: BookOpen },
+    { path: '/archive', label: 'Arşiv', icon: Archive },
+    { path: '/settings', label: 'Ayarlar', icon: Settings },
   ];
 
   return (

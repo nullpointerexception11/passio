@@ -7,11 +7,15 @@ import React, { useEffect, useState } from 'react';
 import { ThemeProvider } from './core/theme/ThemeContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { AppRoutes } from './routes/AppRoutes';
+import { PinLockScreen } from './components/organisms/PinLockScreen';
+import { SplashScreen } from './components/organisms/SplashScreen';
 import { initDb } from './db/connection';
 import { Logger } from './core/logger/Logger';
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     async function bootServices() {
@@ -47,10 +51,21 @@ export default function App() {
     );
   }
 
+  const handleUnlock = () => {
+    setIsUnlocked(true);
+    setShowSplash(true);
+  };
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <AppRoutes />
+        {!isUnlocked ? (
+          <PinLockScreen onUnlock={handleUnlock} />
+        ) : showSplash ? (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        ) : (
+          <AppRoutes />
+        )}
       </ThemeProvider>
     </ErrorBoundary>
   );
