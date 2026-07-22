@@ -1,0 +1,96 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { HighlightRepository } from '../highlight/HighlightRepository';
+import { ReadingNoteRepository } from '../notes/ReadingNoteRepository';
+import { SAMPLE_PDF_DOCUMENTS } from '../../data/samplePdfs';
+import { Logger } from '../logger/Logger';
+import { IKnowledgeBridgeItem } from './KnowledgeBridgeModel';
+
+class KnowledgeBridgeRepositoryService {
+  /**
+   * Helper to resolve Material Title and Author for a given material ID
+   */
+  private resolveMaterialMetadata(materialId: string): { materialTitle: string; author: string } {
+    const matchedSample = SAMPLE_PDF_DOCUMENTS.find(doc => doc.id === materialId);
+    if (matchedSample) {
+      return {
+        materialTitle: matchedSample.title,
+        author: matchedSample.author,
+      };
+    }
+
+    // Check if it's a custom uploaded PDF or other material
+    if (materialId.startsWith('custom-pdf-')) {
+      // Try to clean up name from storage
+      const cachedTitle = localStorage.getItem(`passio_pdf_title_${materialId}`);
+      return {
+        materialTitle: cachedTitle || 'Yerel Yüklenen PDF',
+        author: 'Kişisel Kitaplık',
+      };
+    }
+
+    return {
+      materialTitle: materialId || 'Bilinmeyen Materyal',
+      author: 'Anonim',
+    };
+  }
+
+  /**
+   * Aggregates all Knowledge Fragments (Highlights) and Reading Notes into unified Knowledge Bridge Items
+   */
+  async getAllKnowledgeItems(): Promise<IKnowledgeBridgeItem[]> {
+    try {
+      Logger.debug('KnowledgeBridgeRepository', 'Aggregating all highlights and notes');
+
+      const [highlights, notes] = await Promise.all([
+        HighlightRepository.getAllHighlights(),
+        ReadingNoteRepository.getAllNotes(),
+      ]);
+
+      const mappedHighlights: IKnowledgeBridgeItem[] = highlights.map(h => {
+        const meta = this.resolveMaterialMetadata(h.materialId);
+        return {
+          id: h.id,
+          type: 'highlight',
+          materialId: h.materialId,
+          materialTitle: meta.materialTitle,
+          author: meta.author,
+          pageNumber: h.pageNumber || 1,
+          tags: ['vurgu'],
+          preview: h.selectedText,
+          color: h.color,
+          createdAt: h.createdAt,
+        };
+      });
+
+      const mappedNotes: IKnowledgeBridgeItem[] = notes.map(n => {
+        const meta = this.resolveMaterialMetadata(n.materialId);
+        return {
+          id: n.id,
+          type: 'note',
+          materialId: n.materialId,
+          materialTitle: meta.materialTitle,
+          author: meta.author,
+          pageNumber: 1, // Reading notes belong to the material
+          tags: n.tags && n.tags.length > 0 ? n.tags : ['not'],
+          title: n.title,
+          preview: n.content,
+          createdAt: n.createdAt,
+        };
+      });
+
+      const combined = [...mappedHighlights, ...mappedNotes];
+      // Sort newest first
+      return combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (err) {
+      Logger.error('KnowledgeBridgeRepository', 'Failed to fetch knowledge bridge items', err);
+      return [];
+    }
+  }
+}
+
+export const KnowledgeBridgeRepository = new KnowledgeBridgeRepositoryService();
+export default KnowledgeBridgeRepository;

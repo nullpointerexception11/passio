@@ -55,3 +55,47 @@ export const settings = sqliteTable('settings', {
   value: text('value').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
+
+/**
+ * Knowledge Fragments / Highlights Table - Core storage for PDF highlights and annotations
+ */
+export const highlights = sqliteTable('highlights', {
+  id: text('id').primaryKey(),
+  materialId: text('material_id').notNull(),
+  pageNumber: integer('page_number').notNull(),
+  selectedText: text('selected_text').notNull(),
+  rectsJson: text('rects_json').notNull(), // Serialized JSON array of relative rects [{x,y,width,height}]
+  color: text('color').notNull().default('yellow'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+/**
+ * Reading Notes Table - Core storage for reading thoughts and notes linked to materials
+ */
+export const readingNotes = sqliteTable('reading_notes', {
+  id: text('id').primaryKey(),
+  materialId: text('material_id').notNull(),
+  title: text('title').notNull().default(''),
+  content: text('content').notNull(),
+  tagsJson: text('tags_json').notNull().default('[]'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+/**
+ * Notebooks Table - Core storage for Yazıhane writing notebooks
+ */
+export const notebooks = sqliteTable('notebooks', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  type: text('type').notNull().default('serbest'),
+  content: text('content').notNull().default(''),
+  wordCount: integer('word_count').notNull().default(0),
+  settingsJson: text('settings_json').notNull().default('{}'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+
+

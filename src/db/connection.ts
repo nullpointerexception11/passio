@@ -32,6 +32,87 @@ class BrowserMockDatabaseService implements IDatabaseService {
     this.store['documents'] = JSON.parse(localStorage.getItem('passio_docs') || '{}');
     this.store['collections'] = JSON.parse(localStorage.getItem('passio_collections') || '{}');
     this.store['settings'] = JSON.parse(localStorage.getItem('passio_settings') || '{}');
+    this.store['highlights'] = JSON.parse(localStorage.getItem('passio_highlights') || '{}');
+    this.store['reading_notes'] = JSON.parse(localStorage.getItem('passio_reading_notes') || '{}');
+    this.store['notebooks'] = JSON.parse(localStorage.getItem('passio_notebooks') || '{}');
+
+    // Seed default sample highlights if empty
+    if (Object.keys(this.store['highlights']).length === 0) {
+      this.store['highlights'] = {
+        'h-seed-1': {
+          id: 'h-seed-1',
+          material_id: 'passio-philosophy-manifesto',
+          materialId: 'passio-philosophy-manifesto',
+          page_number: 1,
+          pageNumber: 1,
+          selected_text: 'Günümüz yazılım dünyası, kullanıcının dikkatini sürekli canlı tutmayı amaçlayan bildirimler, rozetler ve renkli göstergelerle doludur. Passio, bu yaklaşımın tam karşısında yer alır. Bilgi edinme süreci derin bir sessizlik gerektirir.',
+          selectedText: 'Günümüz yazılım dünyası, kullanıcının dikkatini sürekli canlı tutmayı amaçlayan bildirimler, rozetler ve renkli göstergelerle doludur. Passio, bu yaklaşımın tam karşısında yer alır. Bilgi edinme süreci derin bir sessizlik gerektirir.',
+          rects_json: '[]',
+          rectsJson: '[]',
+          color: 'yellow',
+          created_at: new Date('2026-07-20T10:00:00Z').toISOString(),
+          createdAt: new Date('2026-07-20T10:00:00Z').toISOString(),
+        },
+        'h-seed-2': {
+          id: 'h-seed-2',
+          material_id: 'passio-philosophy-manifesto',
+          materialId: 'passio-philosophy-manifesto',
+          page_number: 2,
+          pageNumber: 2,
+          selected_text: 'Verilerinizin hiçbir sunucuya veya bulut servisine aktarılmadığı bir sistem, yalnızca gizliliğinizi korumakla kalmaz; aynı zamanda bağlantı koptuğunda dahi kesintisiz bir çalışma ritmi sunar.',
+          selectedText: 'Verilerinizin hiçbir sunucuya veya bulut servisine aktarılmadığı bir sistem, yalnızca gizliliğinizi korumakla kalmaz; aynı zamanda bağlantı koptuğunda dahi kesintisiz bir çalışma ritmi sunar.',
+          rects_json: '[]',
+          rectsJson: '[]',
+          color: 'green',
+          created_at: new Date('2026-07-21T11:30:00Z').toISOString(),
+          createdAt: new Date('2026-07-21T11:30:00Z').toISOString(),
+        },
+        'h-seed-3': {
+          id: 'h-seed-3',
+          material_id: 'dostoyevski-notes-from-underground',
+          materialId: 'dostoyevski-notes-from-underground',
+          page_number: 2,
+          pageNumber: 2,
+          selected_text: 'Baylar, yemin ederim ki her şeyi fazlasıyla anlamak bir hastalıktır; gerçek, tam bir hastalık.',
+          selectedText: 'Baylar, yemin ederim ki her şeyi fazlasıyla anlamak bir hastalıktır; gerçek, tam bir hastalık.',
+          rects_json: '[]',
+          rectsJson: '[]',
+          color: 'purple',
+          created_at: new Date('2026-07-21T14:15:00Z').toISOString(),
+          createdAt: new Date('2026-07-21T14:15:00Z').toISOString(),
+        },
+      };
+      this.persist('highlights');
+    }
+
+    // Seed default sample reading notes if empty
+    if (Object.keys(this.store['reading_notes']).length === 0) {
+      this.store['reading_notes'] = {
+        'n-seed-1': {
+          id: 'n-seed-1',
+          material_id: 'passio-philosophy-manifesto',
+          materialId: 'passio-philosophy-manifesto',
+          title: 'Sessizlik ve Derinleşme',
+          content: 'Arayüz tasarımı doğrudan düşünme kapasitemizi etkiler. Sade bir ekran, zihnin kendi iç dinamiklerine odaklanmasını kolaylaştırır.',
+          tags_json: JSON.stringify(['sadelik', 'odak', 'felsefe']),
+          tagsJson: JSON.stringify(['sadelik', 'odak', 'felsefe']),
+          created_at: new Date('2026-07-21T09:00:00Z').toISOString(),
+          createdAt: new Date('2026-07-21T09:00:00Z').toISOString(),
+        },
+        'n-seed-2': {
+          id: 'n-seed-2',
+          material_id: 'dostoyevski-notes-from-underground',
+          materialId: 'dostoyevski-notes-from-underground',
+          title: 'Bilinç ve Yere Düşüş',
+          content: 'Yeraltı adamı, aşırı bilincin insanı nasıl pasifize ettiğini ve toplumsal kalıplara başkaldırdığını ifade ediyor.',
+          tags_json: JSON.stringify(['yeraltı', 'edebiyat', 'varoluş']),
+          tagsJson: JSON.stringify(['yeraltı', 'edebiyat', 'varoluş']),
+          created_at: new Date('2026-07-21T16:20:00Z').toISOString(),
+          createdAt: new Date('2026-07-21T16:20:00Z').toISOString(),
+        },
+      };
+      this.persist('reading_notes');
+    }
     
     Logger.info('Database', 'Browser fallback database initialized and state seeded from LocalStorage.');
   }
@@ -40,6 +121,9 @@ class BrowserMockDatabaseService implements IDatabaseService {
     if (table === 'documents') localStorage.setItem('passio_docs', JSON.stringify(this.store['documents']));
     if (table === 'collections') localStorage.setItem('passio_collections', JSON.stringify(this.store['collections']));
     if (table === 'settings') localStorage.setItem('passio_settings', JSON.stringify(this.store['settings']));
+    if (table === 'highlights') localStorage.setItem('passio_highlights', JSON.stringify(this.store['highlights']));
+    if (table === 'reading_notes') localStorage.setItem('passio_reading_notes', JSON.stringify(this.store['reading_notes']));
+    if (table === 'notebooks') localStorage.setItem('passio_notebooks', JSON.stringify(this.store['notebooks']));
   }
 
   async execute(query: string, params?: unknown[]): Promise<unknown> {
@@ -160,6 +244,44 @@ class TauriDatabaseService implements IDatabaseService {
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY NOT NULL,
         value TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+
+    await this.dbInstance.execute(`
+      CREATE TABLE IF NOT EXISTS highlights (
+        id TEXT PRIMARY KEY NOT NULL,
+        material_id TEXT NOT NULL,
+        page_number INTEGER NOT NULL,
+        selected_text TEXT NOT NULL,
+        rects_json TEXT NOT NULL,
+        color TEXT NOT NULL DEFAULT 'yellow',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+
+    await this.dbInstance.execute(`
+      CREATE TABLE IF NOT EXISTS reading_notes (
+        id TEXT PRIMARY KEY NOT NULL,
+        material_id TEXT NOT NULL,
+        title TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL,
+        tags_json TEXT NOT NULL DEFAULT '[]',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+
+    await this.dbInstance.execute(`
+      CREATE TABLE IF NOT EXISTS notebooks (
+        id TEXT PRIMARY KEY NOT NULL,
+        title TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'serbest',
+        content TEXT NOT NULL DEFAULT '',
+        word_count INTEGER NOT NULL DEFAULT 0,
+        settings_json TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
     `);

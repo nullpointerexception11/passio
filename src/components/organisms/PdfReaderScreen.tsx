@@ -1,0 +1,480 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useEffect } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  ArrowLeft, 
+  Highlighter, 
+  FileText, 
+  Settings2, 
+  ZoomIn, 
+  ZoomOut, 
+  Maximize2, 
+  Minimize2, 
+  BookOpen, 
+  ScrollText, 
+  Upload,
+  Check,
+  Plus,
+  Search
+} from 'lucide-react';
+import { PdfEngine } from '../../core/pdf/PdfService';
+import { PdfReaderEngine } from './PdfReaderEngine';
+import { Logger } from '../../core/logger/Logger';
+import { ReadingNoteService } from '../../core/notes/ReadingNoteService';
+import { IReadingNote } from '../../core/notes/ReadingNoteModel';
+import { ReadingNoteDialog } from '../molecules/ReadingNoteDialog';
+import { ReadingNoteSearchDialog } from '../molecules/ReadingNoteSearchDialog';
+
+interface PdfReaderScreenProps {
+  docId: string;
+  docTitle: string;
+  sourceUrlOrBuffer: string | ArrayBuffer;
+  initialPage?: number;
+  onClose: () => void;
+}
+
+export const PdfReaderScreen: React.FC<PdfReaderScreenProps> = ({
+  docId,
+  docTitle,
+  sourceUrlOrBuffer,
+  initialPage,
+  onClose,
+}) => {
+  const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [lastReadPage, setLastReadPage] = useState<number>(initialPage || 1);
+  const [currentPage, setCurrentPage] = useState<number>(initialPage || 1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  
+  // PDF Settings State
+  const [scale, setScale] = useState<number>(1.0);
+  const [fitWidth, setFitWidth] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'continuous' | 'single'>('continuous');
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+
+  // Notes Engine State (Sprint 8)
+  const [showNoteMenu, setShowNoteMenu] = useState<boolean>(false);
+  const [showNoteDialog, setShowNoteDialog] = useState<boolean>(false);
+  const [showSearchNoteDialog, setShowSearchNoteDialog] = useState<boolean>(false);
+  const [editingNote, setEditingNote] = useState<IReadingNote | null>(null);
+  const [notes, setNotes] = useState<IReadingNote[]>([]);
+
+  // Load PDF Document & Restore Last Read Page
+  useEffect(() => {
+    let isSubscribed = true;
+
+    async function initPdf() {
+      setIsLoading(true);
+      try {
+        const savedPage = initialPage || await PdfEngine.getLastReadPage(docId);
+        if (isSubscribed) setLastReadPage(savedPage);
+
+        const loadedDoc = await PdfEngine.loadDocument(sourceUrlOrBuffer);
+        if (isSubscribed) {
+          setPdfDoc(loadedDoc);
+          setTotalPages(loadedDoc.numPages);
+          setCurrentPage(savedPage);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        Logger.error('PdfReaderScreen', 'Failed to initialize PDF Reader.', err);
+        if (isSubscribed) setIsLoading(false);
+      }
+    }
+
+    initPdf();
+
+    return () => {
+      isSubscribed = false;
+      PdfEngine.cancelAllRenders();
+    };
+  }, [docId, sourceUrlOrBuffer]);
+
+  // Load and subscribe to Reading Notes for current material
+  useEffect(() => {
+    ReadingNoteService.loadNotes(docId).then((loaded) => {
+      setNotes(loaded);
+    });
+
+    const unsubscribe = ReadingNoteService.subscribe(() => {
+      setNotes(ReadingNoteService.getNotesForMaterial(docId));
+    });
+
+    return () => unsubscribe();
+  }, [docId]);
+
+  // Keyboard shortcut listener for ESC key to close reader cleanly
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showNoteDialog) {
+          setShowNoteDialog(false);
+        } else if (showSearchNoteDialog) {
+          setShowSearchNoteDialog(false);
+        } else if (showNoteMenu) {
+          setShowNoteMenu(false);
+        } else if (showSettings) {
+          setShowSettings(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, showSettings, showNoteMenu, showNoteDialog, showSearchNoteDialog]);
+
+  const handleZoomIn = () => {
+    setFitWidth(false);
+    setScale((prev) => Math.min(prev + 0.15, 2.5));
+  };
+
+  const handleZoomOut = () => {
+    setFitWidth(false);
+    setScale((prev) => Math.max(prev - 0.15, 0.5));
+  };
+
+  const toggleFitWidth = () => {
+    setFitWidth((prev) => !prev);
+  };
+
+  const handleOpenNewNote = () => {
+    setEditingNote(null);
+    setShowNoteMenu(false);
+    setShowNoteDialog(true);
+  };
+
+  const handleOpenSearchNote = () => {
+    setShowNoteMenu(false);
+    setShowSearchNoteDialog(true);
+  };
+
+  const handleSaveNote = async (title: string, content: string, tags: string[], existingId?: string) => {
+    await ReadingNoteService.saveNote(docId, title, content, tags, existingId);
+    setShowNoteDialog(false);
+    setEditingNote(null);
+  };
+
+  const handleSelectNoteFromSearch = (note: IReadingNote) => {
+    setShowSearchNoteDialog(false);
+    setEditingNote(note);
+    setShowNoteDialog(true);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    await ReadingNoteService.deleteNote(docId, noteId);
+  };
+
+  return (
+    <div
+      id="passio-pdf-fullscreen-reader"
+      className="fixed inset-0 z-50 flex flex-col w-screen h-screen select-none overflow-hidden"
+      style={{
+        backgroundColor: 'var(--color-bg-base)',
+        color: 'var(--color-text-primary)',
+      }}
+    >
+      {/* Top Header Bar - Minimal Controls */}
+      <header 
+        className="h-14 px-6 flex items-center justify-between border-b z-40 relative backdrop-blur-md transition-colors shrink-0"
+        style={{
+          borderColor: 'var(--color-border-subtle)',
+          backgroundColor: 'var(--color-bg-surface)',
+        }}
+      >
+        {/* Left: Document Information & Page Count */}
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
+            <h1 className="text-xs font-serif font-medium tracking-wide truncate max-w-xs sm:max-w-md">
+              {docTitle}
+            </h1>
+            <span className="text-[10px] font-mono opacity-50 tracking-wider">
+              {isLoading ? 'Yükleniyor...' : `Sayfa ${currentPage} / ${totalPages}`}
+            </span>
+          </div>
+        </div>
+
+        {/* Top Right: Exactly 3 icons (Not [aktif], Vurgu [aktif], Kapat) */}
+        <div className="flex items-center gap-2 relative">
+          {/* 1. Not (aktif - Sprint 8 Reading Notes Engine) */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNoteMenu((prev) => !prev)}
+              className="p-2 rounded border transition-all cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 flex items-center justify-center gap-1"
+              style={{
+                borderColor: notes.length > 0 ? 'var(--color-text-accent)' : 'var(--color-border-subtle)',
+                color: 'var(--color-text-primary)',
+              }}
+              title="Okuma Notları"
+            >
+              <FileText className="w-4 h-4" />
+              {notes.length > 0 && (
+                <span className="text-[10px] font-mono bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 rounded-full">
+                  {notes.length}
+                </span>
+              )}
+            </button>
+
+            {/* Note Options Popover: Exactly 2 options (1. Yeni Not, 2. Not Ara) */}
+            <AnimatePresence>
+              {showNoteMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-44 p-1.5 rounded-xl border shadow-2xl z-50 flex flex-col gap-1 font-mono text-xs"
+                  style={{
+                    backgroundColor: 'var(--color-bg-surface)',
+                    borderColor: 'var(--color-border-subtle)',
+                    color: 'var(--color-text-primary)',
+                    boxShadow: 'var(--shadows-large)',
+                  }}
+                >
+                  <button
+                    onClick={handleOpenNewNote}
+                    className="w-full px-3 py-2 rounded-lg flex items-center gap-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-left cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Yeni Not</span>
+                  </button>
+                  <button
+                    onClick={handleOpenSearchNote}
+                    className="w-full px-3 py-2 rounded-lg flex items-center gap-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-left cursor-pointer"
+                  >
+                    <Search className="w-3.5 h-3.5 opacity-60" />
+                    <span>Not Ara</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* 2. Vurgu (aktif - Sprint 7 Highlight Engine) */}
+          <div
+            className="p-2 rounded border border-amber-500/50 bg-amber-500/10 text-amber-500 flex items-center justify-center transition-all cursor-default"
+            title="Vurgulama Modu (Metin seçerek vurgulayın)"
+          >
+            <Highlighter className="w-4 h-4 text-amber-500" />
+          </div>
+
+          {/* 3. Kapat */}
+          <button
+            onClick={onClose}
+            className="p-2 rounded border transition-all cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 flex items-center justify-center"
+            style={{
+              borderColor: 'var(--color-border-subtle)',
+              color: 'var(--color-text-primary)',
+            }}
+            title="Kapat (Esc)"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* Center PDF View Engine Area & Reading Notes Split View */}
+      <div className="flex-1 flex w-full h-[calc(100vh-3.5rem)] overflow-hidden relative">
+        <main 
+          className={`h-full transition-all duration-300 relative overflow-hidden ${
+            showNoteDialog || showSearchNoteDialog ? 'w-full lg:w-[80%] flex-1' : 'w-full'
+          }`}
+        >
+          {isLoading ? (
+            /* Premium Calm Skeleton Loading View */
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin border-neutral-400" />
+              <span className="text-xs font-mono tracking-widest uppercase opacity-50">
+                PDF Okuma Motoru Hazırlanıyor...
+              </span>
+            </div>
+          ) : pdfDoc ? (
+            <PdfReaderEngine
+              docId={docId}
+              pdfDoc={pdfDoc}
+              scale={scale}
+              fitWidth={fitWidth}
+              viewMode={viewMode}
+              initialPage={lastReadPage}
+              onPageChange={(page, total) => {
+                setCurrentPage(page);
+                setTotalPages(total);
+              }}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full gap-2 text-red-500 font-mono text-xs">
+              <span>Belge yüklenirken bir hata oluştu.</span>
+            </div>
+          )}
+        </main>
+
+        {/* 20% Reading Notes Side Panel */}
+        <AnimatePresence>
+          {(showNoteDialog || showSearchNoteDialog) && (
+            <motion.aside
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="w-full sm:w-[320px] lg:w-[20%] min-w-[280px] max-w-[380px] h-full border-l shrink-0 z-30 shadow-xl"
+              style={{
+                borderColor: 'var(--color-border-subtle)',
+                backgroundColor: 'var(--color-bg-surface)',
+              }}
+            >
+              {showNoteDialog && (
+                <ReadingNoteDialog
+                  note={editingNote}
+                  onSave={handleSaveNote}
+                  onClose={() => {
+                    setShowNoteDialog(false);
+                    setEditingNote(null);
+                  }}
+                />
+              )}
+
+              {showSearchNoteDialog && (
+                <ReadingNoteSearchDialog
+                  notes={notes}
+                  onSelectNote={handleSelectNoteFromSearch}
+                  onDeleteNote={handleDeleteNote}
+                  onClose={() => setShowSearchNoteDialog(false)}
+                />
+              )}
+            </motion.aside>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Floating Settings Control Trigger */}
+      <div className={`fixed z-50 transition-all duration-300 ${
+        showNoteDialog || showSearchNoteDialog
+          ? 'top-16 left-6'
+          : 'bottom-6 right-8'
+      }`}>
+        <button
+          onClick={() => setShowSettings((prev) => !prev)}
+          className={`rounded-full border shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95 flex items-center ${
+            showNoteDialog || showSearchNoteDialog ? 'p-2' : 'p-3 gap-2'
+          }`}
+          style={{
+            backgroundColor: 'var(--color-bg-surface)',
+            borderColor: 'var(--color-border-subtle)',
+            color: 'var(--color-text-primary)',
+            boxShadow: 'var(--shadows-medium)',
+          }}
+          title="Okuyucu Ayarları"
+        >
+          <Settings2 className={showNoteDialog || showSearchNoteDialog ? 'w-4 h-4 text-accent' : 'w-5 h-5 text-accent'} />
+          {!(showNoteDialog || showSearchNoteDialog) && (
+            <span className="text-xs font-mono font-medium hidden sm:inline">Ayarlar</span>
+          )}
+        </button>
+
+        {/* Settings Popover Panel */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, y: (showNoteDialog || showSearchNoteDialog) ? -10 : 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: (showNoteDialog || showSearchNoteDialog) ? -10 : 10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className={`absolute w-72 p-4 rounded-xl border shadow-2xl flex flex-col gap-4 font-mono text-xs z-50 ${
+                showNoteDialog || showSearchNoteDialog
+                  ? 'top-12 left-0'
+                  : 'bottom-16 right-0'
+              }`}
+              style={{
+                backgroundColor: 'var(--color-bg-surface)',
+                borderColor: 'var(--color-border-subtle)',
+                color: 'var(--color-text-primary)',
+                boxShadow: 'var(--shadows-large)',
+              }}
+            >
+              <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                <span className="font-semibold text-accent uppercase tracking-wider text-[11px]">
+                  OKUYUCU AYARLARI
+                </span>
+                <span className="text-[10px] opacity-40">PASSIO PDF v1</span>
+              </div>
+
+              {/* Zoom Controls */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] opacity-60 uppercase">Yakınlaştırma ({Math.round(scale * 100)}%)</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleZoomOut}
+                    className="p-2 rounded border flex-1 flex justify-center items-center hover:bg-black/5 dark:hover:bg-white/5"
+                    style={{ borderColor: 'var(--color-border-subtle)' }}
+                    title="Uzaklaştır"
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleZoomIn}
+                    className="p-2 rounded border flex-1 flex justify-center items-center hover:bg-black/5 dark:hover:bg-white/5"
+                    style={{ borderColor: 'var(--color-border-subtle)' }}
+                    title="Yakınlaştır"
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Fit Width Control */}
+              <div className="flex flex-col gap-2 border-t pt-2" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                <button
+                  onClick={toggleFitWidth}
+                  className={`p-2 rounded border flex items-center justify-between transition-colors ${
+                    fitWidth ? 'border-accent text-accent font-semibold' : ''
+                  }`}
+                  style={{ borderColor: fitWidth ? 'var(--color-text-accent)' : 'var(--color-border-subtle)' }}
+                >
+                  <span className="flex items-center gap-2">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Genişliğe Sığdır</span>
+                  </span>
+                  {fitWidth && <Check className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+
+              {/* View Mode Controls */}
+              <div className="flex flex-col gap-2 border-t pt-2" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                <span className="text-[10px] opacity-60 uppercase">Görünüm Modu</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setViewMode('continuous')}
+                    className={`p-2 rounded border flex items-center justify-center gap-1.5 ${
+                      viewMode === 'continuous' ? 'border-accent text-accent font-semibold' : ''
+                    }`}
+                    style={{ borderColor: viewMode === 'continuous' ? 'var(--color-text-accent)' : 'var(--color-border-subtle)' }}
+                  >
+                    <ScrollText className="w-3.5 h-3.5" />
+                    <span>Sürekli</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('single')}
+                    className={`p-2 rounded border flex items-center justify-center gap-1.5 ${
+                      viewMode === 'single' ? 'border-accent text-accent font-semibold' : ''
+                    }`}
+                    style={{ borderColor: viewMode === 'single' ? 'var(--color-text-accent)' : 'var(--color-border-subtle)' }}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Tek Sayfa</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+export default PdfReaderScreen;

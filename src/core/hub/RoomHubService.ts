@@ -6,7 +6,7 @@
 export interface IRoom {
   id: string;
   title: string;
-  emoji: string;
+  iconName: 'pen' | 'book' | 'archive' | 'settings';
   path: string;
   description: string;
   angle: number; // Angle in degrees on the ring layout
@@ -16,7 +16,7 @@ export const PASSIO_ROOMS: IRoom[] = [
   {
     id: 'focus',
     title: 'Yazıhane',
-    emoji: '✍️',
+    iconName: 'pen',
     path: '/focus',
     description: 'Zihnin kağıtla buluştuğu pürüzsüz çalışma alanı.',
     angle: 270, // Top
@@ -24,7 +24,7 @@ export const PASSIO_ROOMS: IRoom[] = [
   {
     id: 'library',
     title: 'Kütüphane',
-    emoji: '📚',
+    iconName: 'book',
     path: '/library',
     description: 'Sessiz ve derin okuma seansları için kişisel arşiv.',
     angle: 0, // Right
@@ -32,7 +32,7 @@ export const PASSIO_ROOMS: IRoom[] = [
   {
     id: 'archive',
     title: 'Arşiv',
-    emoji: '🗄️',
+    iconName: 'archive',
     path: '/archive',
     description: 'Geçmiş çalışmaların ve dökümanların güvenli odası.',
     angle: 90, // Bottom
@@ -40,7 +40,7 @@ export const PASSIO_ROOMS: IRoom[] = [
   {
     id: 'settings',
     title: 'Ayarlar',
-    emoji: '⚙️',
+    iconName: 'settings',
     path: '/settings',
     description: 'Sistem tercihlerinin ve yerel veritabanının yönetimi.',
     angle: 180, // Left
