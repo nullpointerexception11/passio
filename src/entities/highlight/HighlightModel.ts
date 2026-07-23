@@ -62,3 +62,5 @@ export const HIGHLIGHT_COLOR_MAP: Record<HighlightColor, IHighlightColorStyle> =
     label: 'Kırmızı',
   },
 };
+
+export * from '../../core/highlight/HighlightRepository';
