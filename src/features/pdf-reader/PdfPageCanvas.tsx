@@ -25,9 +25,9 @@ const getReadingModeStyles = (mode: PdfReadingMode) => {
       };
     case 'sepia':
       return {
-        containerBg: '#FBF0D9',
-        canvasFilter: 'sepia(0.35) contrast(0.95) brightness(0.98)',
-        borderColor: 'rgba(140, 122, 91, 0.25)',
+        containerBg: '#FAF2DC',
+        canvasFilter: 'sepia(0.5) saturate(1.35) hue-rotate(-10deg) contrast(0.92) brightness(0.97)',
+        borderColor: 'rgba(180, 150, 80, 0.25)',
       };
     case 'original':
     default:

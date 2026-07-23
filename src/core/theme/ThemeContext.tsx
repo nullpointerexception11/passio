@@ -29,7 +29,7 @@ export const READING_MODES: ReadingModeOption[] = [
   {
     id: 'sepia',
     label: 'Sepya Okuma',
-    description: 'Kağıt hissi veren sıcak tonlar ile dinlendirici okuma.',
+    description: 'Göz yormayan sıcak sarı-kağıt tonları ile dinlendirici okuma.',
   },
 ];
 
