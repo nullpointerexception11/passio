@@ -13,7 +13,7 @@ interface KnowledgeItemPreviewModalProps {
   item: IKnowledgeBridgeItem | null;
   onClose: () => void;
   onAddToEssay: (item: IKnowledgeBridgeItem) => void;
-  onNavigateToSource: (item: IKnowledgeBridgeItem) => void;
+  onNavigateToSource?: (item: IKnowledgeBridgeItem) => void;
 }
 
 export const KnowledgeItemPreviewModal: React.FC<KnowledgeItemPreviewModalProps> = ({
@@ -116,18 +116,20 @@ export const KnowledgeItemPreviewModal: React.FC<KnowledgeItemPreviewModalProps>
             className="px-6 py-4 border-t flex items-center justify-between gap-3"
             style={{ borderColor: 'var(--color-border-subtle)' }}
           >
-            <button
-              onClick={() => {
-                onNavigateToSource(item);
-                onClose();
-              }}
-              className="px-3.5 py-2 rounded-xl text-xs font-mono border flex items-center gap-1.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer opacity-80 hover:opacity-100"
-              style={{ borderColor: 'var(--color-border-subtle)' }}
-              title="Kütüphane PDF Okuyucusunda ilgili sayfaya git"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
-              <span>Kaynağa Git</span>
-            </button>
+            {onNavigateToSource && (
+              <button
+                onClick={() => {
+                  onNavigateToSource(item);
+                  onClose();
+                }}
+                className="px-3.5 py-2 rounded-xl text-xs font-mono border flex items-center gap-1.5 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer opacity-80 hover:opacity-100"
+                style={{ borderColor: 'var(--color-border-subtle)' }}
+                title="Kütüphane PDF Okuyucusunda ilgili sayfaya git"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
+                <span>Kaynağa Git</span>
+              </button>
+            )}
 
             <button
               onClick={() => {

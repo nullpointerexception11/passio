@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { IMaterial } from './MaterialModel';
-import { IStorageAdapter } from '../../infrastructure/storage/StorageAdapter';
-import { LocalStorageAdapter } from '../../infrastructure/storage/LocalStorageAdapter';
+import { IMaterial, IMaterialRepository } from '../../entities/material/MaterialModel';
+import { IStorageAdapter } from '../storage/StorageAdapter';
+import { LocalStorageAdapter } from '../storage/LocalStorageAdapter';
 
-export class MaterialRepository {
+export class MaterialRepository implements IMaterialRepository {
   private adapter: IStorageAdapter<IMaterial>;
 
   constructor(adapter?: IStorageAdapter<IMaterial>) {
@@ -41,3 +41,4 @@ export class MaterialRepository {
 }
 
 export const materialRepository = new MaterialRepository();
+export default MaterialRepository;

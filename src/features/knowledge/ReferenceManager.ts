@@ -75,6 +75,10 @@ class ReferenceManagerService {
   public getReferences(notebookId: string): INotebookReference[] {
     return this.referencesMap.get(notebookId) || [];
   }
+
+  public getReferencesForNotebook(notebookId: string): INotebookReference[] {
+    return this.getReferences(notebookId);
+  }
 }
 
 export const ReferenceManager = new ReferenceManagerService();

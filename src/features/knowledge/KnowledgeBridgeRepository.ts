@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { HighlightRepository } from '../../entities/highlight/HighlightModel';
+import { HighlightRepository } from '../../core/highlight/HighlightRepository';
 import { ReadingNoteRepository } from '../notes/ReadingNoteRepository';
 import { SAMPLE_PDF_DOCUMENTS } from '../../data/samplePdfs';
 import { Logger } from '../../infrastructure/logger/Logger';

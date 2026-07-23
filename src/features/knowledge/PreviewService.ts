@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { IKnowledgeBridgeItem } from '../../entities/knowledge/KnowledgeBridgeModel';
+import { IKnowledgeBridgeItem, KnowledgeBridgeType } from '../../entities/knowledge/KnowledgeBridgeModel';
 
 export interface IKnowledgePreviewData {
   id: string;
-  type: 'highlight' | 'note';
+  type: KnowledgeBridgeType;
   typeLabel: string;
   title: string;
   content: string;
@@ -20,8 +20,12 @@ export interface IKnowledgePreviewData {
 
 export class PreviewService {
   public static generatePreview(item: IKnowledgeBridgeItem): IKnowledgePreviewData {
-    const isHighlight = item.type === 'highlight';
-    const typeLabel = isHighlight ? 'Vurgu' : 'Okuma Notu';
+    const isHighlight = item.type === 'highlight' || item.type === 'annotation';
+    let typeLabel = 'Bilgi Parçası';
+    if (item.type === 'highlight') typeLabel = 'Vurgu';
+    else if (item.type === 'note') typeLabel = 'Okuma Notu';
+    else if (item.type === 'annotation') typeLabel = 'Alıntı';
+    else if (item.type === 'insight') typeLabel = 'Düşünce';
     
     let formattedDate = '';
     try {

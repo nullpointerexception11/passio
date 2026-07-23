@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { IKnowledgeLocator } from '../material/MaterialModel';
+
 export type HighlightColor = 'yellow' | 'blue' | 'green' | 'red';
 
 export interface IHighlightRect {
@@ -14,11 +16,11 @@ export interface IHighlightRect {
 
 /**
  * Knowledge Fragment Model
- * Represents a highlighted text segment extracted from a source PDF document.
+ * Represents a highlighted text segment extracted from a source document.
  */
 export interface IHighlightFragment {
   id: string;
-  materialId: string;    // PDF Document ID
+  materialId: string;    // Document/Source ID
   pageNumber: number;
   selectedText: string;
   rects: IHighlightRect[];
@@ -27,6 +29,7 @@ export interface IHighlightFragment {
   updatedAt: string;    // ISO Date string
   tags?: string[];
   note?: string;
+  locator?: IKnowledgeLocator;
 }
 
 export interface IHighlightColorStyle {
@@ -63,4 +66,12 @@ export const HIGHLIGHT_COLOR_MAP: Record<HighlightColor, IHighlightColorStyle> =
   },
 };
 
-export * from '../../core/highlight/HighlightRepository';
+/**
+ * Pure Domain Contract: Highlight Repository
+ */
+export interface IHighlightRepository {
+  getAllHighlights(): Promise<IHighlightFragment[]>;
+  getHighlightsByMaterial(materialId: string): Promise<IHighlightFragment[]>;
+  saveHighlight(fragment: IHighlightFragment): Promise<IHighlightFragment>;
+  deleteHighlight(id: string): Promise<void>;
+}
