@@ -36,9 +36,26 @@ class PdfService {
   async loadDocument(urlOrBuffer: string | ArrayBuffer): Promise<pdfjsLib.PDFDocumentProxy> {
     try {
       Logger.info('PdfService', 'Loading PDF document resource...');
-      const source = typeof urlOrBuffer === 'string'
-        ? { url: urlOrBuffer }
-        : { data: new Uint8Array(urlOrBuffer) };
+      let source: Parameters<typeof pdfjsLib.getDocument>[0];
+      if (typeof urlOrBuffer === 'string') {
+        source = { url: urlOrBuffer };
+      } else if (urlOrBuffer instanceof ArrayBuffer) {
+        if (urlOrBuffer.byteLength === 0) {
+          throw new Error('Provided ArrayBuffer is detached (byteLength is 0).');
+        }
+        // Copy the ArrayBuffer so PDF.js worker transfer does NOT detach the original buffer
+        const bufferCopy = urlOrBuffer.slice(0);
+        source = { data: new Uint8Array(bufferCopy) };
+      } else if (ArrayBuffer.isView(urlOrBuffer)) {
+        const view = urlOrBuffer as ArrayBufferView;
+        if (view.buffer.byteLength === 0) {
+          throw new Error("Provided TypedArray's buffer is detached.");
+        }
+        const bufferCopy = view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength);
+        source = { data: new Uint8Array(bufferCopy) };
+      } else {
+        throw new Error('Unsupported source format for PDF loading.');
+      }
       const loadingTask = pdfjsLib.getDocument(source);
       const pdfDoc = await loadingTask.promise;
       Logger.info('PdfService', `PDF document loaded successfully. Total Pages: ${pdfDoc.numPages}`);

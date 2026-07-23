@@ -5,15 +5,15 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Shield, HardDrive, Terminal } from 'lucide-react';
-import { useTheme } from '../theme/ThemeContext';
+import { Moon, Sun, Shield, HardDrive, Terminal, BookOpen, Check } from 'lucide-react';
+import { useTheme, READING_MODES, PdfReadingMode } from '../theme/ThemeContext';
 import { Logger } from '../../infrastructure/logger/Logger';
 import { Security } from '../../infrastructure/security/SecurityService';
 import { Header } from '../../shared/ui/Header';
 
 export const SettingsScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { themeType, toggleTheme } = useTheme();
+  const { themeType, toggleTheme, pdfReadingMode, setPdfReadingMode } = useTheme();
   const [logs, setLogs] = useState<string>('');
 
   const handleWipePin = async () => {
@@ -38,11 +38,12 @@ export const SettingsScreen: React.FC = () => {
       <Header title="AYARLAR" onBack={() => navigate('/')} backLabel="Ana Salon" />
 
       <main className="flex-1 max-w-3xl w-full mx-auto p-8 flex flex-col gap-8">
+        {/* App Theme Selection */}
         <section className="p-6 rounded-2xl border flex items-center justify-between" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>
           <div className="flex items-center gap-3">
             {themeType === 'light' ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-400" />}
             <div className="flex flex-col">
-              <span className="text-sm font-serif font-medium">Görünüm Modu</span>
+              <span className="text-sm font-serif font-medium">Uygulama Teması</span>
               <span className="text-xs opacity-50 font-mono">
                 {themeType === 'light' ? 'Premium White (Açık Tema)' : 'Premium Black (Karanlık Tema)'}
               </span>
@@ -50,11 +51,51 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <button
             onClick={toggleTheme}
-            className="px-4 py-2 rounded-lg border text-xs font-mono font-medium cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+            className="px-4 py-2 rounded-lg border text-xs font-mono font-medium cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             style={{ borderColor: 'var(--color-border-subtle)' }}
           >
             Temayı Değiştir
           </button>
+        </section>
+
+        {/* Reading Settings: PDF Görünümü */}
+        <section className="p-6 rounded-2xl border flex flex-col gap-4" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>
+          <div className="flex items-center gap-3 border-b pb-3" style={{ borderColor: 'var(--color-border-subtle)' }}>
+            <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="flex flex-col">
+              <span className="text-sm font-serif font-medium">Okuma & PDF Görünümü</span>
+              <span className="text-xs opacity-50 font-mono">PDF içeriklerinin okuma ortamı rengini özelleştirin</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            {READING_MODES.map((mode) => {
+              const isSelected = pdfReadingMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => setPdfReadingMode(mode.id as PdfReadingMode)}
+                  className={`p-4 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                    isSelected ? 'ring-1 ring-amber-500/50' : 'hover:border-amber-500/30'
+                  }`}
+                  style={{
+                    borderColor: isSelected ? 'var(--color-text-accent)' : 'var(--color-border-subtle)',
+                    backgroundColor: isSelected ? 'rgba(140, 122, 91, 0.08)' : 'transparent',
+                  }}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <span className="text-xs font-serif font-semibold tracking-wide">
+                      {mode.label}
+                    </span>
+                    {isSelected && <Check className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+                  </div>
+                  <p className="text-[11px] font-mono opacity-60 leading-relaxed">
+                    {mode.description}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         <section className="p-6 rounded-2xl border flex flex-col gap-3" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>

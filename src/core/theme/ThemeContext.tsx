@@ -7,11 +7,39 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { THEMES, ThemeType, ColorPalette } from './themes';
 import { DESIGN_TOKENS } from './tokens';
 
+export type PdfReadingMode = 'original' | 'dark' | 'sepia';
+
+export interface ReadingModeOption {
+  id: PdfReadingMode;
+  label: string;
+  description: string;
+}
+
+export const READING_MODES: ReadingModeOption[] = [
+  {
+    id: 'original',
+    label: 'Orijinal',
+    description: 'PDF tamamen orijinal doğal renklerinde gösterilir.',
+  },
+  {
+    id: 'dark',
+    label: 'Karanlık Okuma',
+    description: 'Uzun gece okumaları için göz yormayan özel koyu mod.',
+  },
+  {
+    id: 'sepia',
+    label: 'Sepya Okuma',
+    description: 'Kağıt hissi veren sıcak tonlar ile dinlendirici okuma.',
+  },
+];
+
 interface ThemeContextProps {
   themeType: ThemeType;
   theme: ColorPalette;
+  pdfReadingMode: PdfReadingMode;
   setThemeType: (type: ThemeType) => void;
   toggleTheme: () => void;
+  setPdfReadingMode: (mode: PdfReadingMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
@@ -26,6 +54,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return systemPrefersDark ? 'dark' : 'light';
   });
 
+  // Initialize PDF reading mode from localStorage
+  const [pdfReadingMode, setPdfReadingModeState] = useState<PdfReadingMode>(() => {
+    const saved = localStorage.getItem('passio-pdf-reading-mode');
+    if (saved === 'original' || saved === 'dark' || saved === 'sepia') return saved;
+    return 'original';
+  });
+
   const theme = THEMES[themeType];
 
   const setThemeType = (newTheme: ThemeType) => {
@@ -35,6 +70,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const toggleTheme = () => {
     setThemeType(themeType === 'light' ? 'dark' : 'light');
+  };
+
+  const setPdfReadingMode = (mode: PdfReadingMode) => {
+    setPdfReadingModeState(mode);
+    localStorage.setItem('passio-pdf-reading-mode', mode);
   };
 
   // Synchronize CSS variables and classes on the HTML element
@@ -93,7 +133,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [themeType]);
 
   return (
-    <ThemeContext.Provider value={{ themeType, theme, setThemeType, toggleTheme }}>
+    <ThemeContext.Provider value={{ themeType, theme, pdfReadingMode, setThemeType, toggleTheme, setPdfReadingMode }}>
       {children}
     </ThemeContext.Provider>
   );
