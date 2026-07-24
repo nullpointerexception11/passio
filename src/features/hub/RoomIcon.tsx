@@ -48,9 +48,9 @@ export const RoomIcon: React.FC<RoomIconProps> = ({
       onMouseEnter={onHoverStart}
       onMouseLeave={onHoverEnd}
       onClick={onClick}
-      className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex flex-col items-center justify-center cursor-pointer border select-none transition-all duration-150 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+      className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex flex-col items-center justify-center cursor-pointer border select-none transition-all duration-300 shadow-sm hover:shadow-xl group"
       style={{
-        transform: `translate(${x}px, ${y}px)`,
+        transform: `translate(${x}px, ${y}px) scale(${isHovered ? 1.08 : 1})`,
         backgroundColor: isHovered ? 'var(--color-text-primary)' : 'var(--color-bg-surface)',
         borderColor: isHovered ? 'var(--color-text-primary)' : 'var(--color-border-subtle)',
         color: isHovered ? 'var(--color-bg-base)' : 'var(--color-text-primary)',

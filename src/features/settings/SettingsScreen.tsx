@@ -5,8 +5,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Shield, HardDrive, Terminal, BookOpen, Check } from 'lucide-react';
+import { Moon, Sun, Shield, HardDrive, Terminal, BookOpen, Check, Lock } from 'lucide-react';
 import { useTheme, READING_MODES, PdfReadingMode } from '../theme/ThemeContext';
+import { useSession } from '../../core/session/SessionContext';
 import { Logger } from '../../infrastructure/logger/Logger';
 import { Security } from '../../infrastructure/security/SecurityService';
 import { Header } from '../../shared/ui/Header';
@@ -14,6 +15,7 @@ import { Header } from '../../shared/ui/Header';
 export const SettingsScreen: React.FC = () => {
   const navigate = useNavigate();
   const { themeType, toggleTheme, pdfReadingMode, setPdfReadingMode } = useTheme();
+  const { lockSession } = useSession();
   const [logs, setLogs] = useState<string>('');
 
   const handleWipePin = async () => {
@@ -100,7 +102,7 @@ export const SettingsScreen: React.FC = () => {
 
         <section className="p-6 rounded-2xl border flex flex-col gap-3" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>
           <div className="flex items-center gap-3">
-            <HardDrive className="w-5 h-5 text-accent" />
+            <HardDrive className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             <div className="flex flex-col">
               <span className="text-sm font-serif font-medium">SQLite Veritabanı Depolaması</span>
               <span className="text-xs opacity-50 font-mono">Tüm veriler cihazınızda yerel olarak saklanır (`passio_core.db`)</span>
@@ -110,7 +112,23 @@ export const SettingsScreen: React.FC = () => {
 
         <section className="p-6 rounded-2xl border flex items-center justify-between" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>
           <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-green-500" />
+            <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="flex flex-col">
+              <span className="text-sm font-serif font-medium">Oturumu Kilitle (Çıkış Yap)</span>
+              <span className="text-xs opacity-50 font-mono">Çalışma alanınızı hemen kilitler ve PIN kilit ekranına döner</span>
+            </div>
+          </div>
+          <button
+            onClick={lockSession}
+            className="px-4 py-2 rounded-lg border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-medium cursor-pointer hover:bg-amber-500/10 transition-colors"
+          >
+            Oturumu Kilitle
+          </button>
+        </section>
+
+        <section className="p-6 rounded-2xl border flex items-center justify-between" style={{ borderColor: 'var(--color-border-subtle)', backgroundColor: 'var(--color-bg-surface)' }}>
+          <div className="flex items-center gap-3">
+            <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             <div className="flex flex-col">
               <span className="text-sm font-serif font-medium">Güvenlik PIN Kilit Ayarı</span>
               <span className="text-xs opacity-50 font-mono">Kilit ekranı PIN kodunu ve oturumu sıfırlayın</span>

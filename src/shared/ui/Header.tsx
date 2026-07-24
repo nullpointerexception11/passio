@@ -4,8 +4,9 @@
  */
 
 import React from 'react';
-import { ArrowLeft, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, Lock } from 'lucide-react';
 import { useTheme } from '../../core/theme/ThemeContext';
+import { useSession } from '../../core/session/SessionContext';
 
 export interface HeaderProps {
   title: string;
@@ -23,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   showThemeToggle = true,
 }) => {
   const { themeType, toggleTheme } = useTheme();
+  const { lockSession } = useSession();
 
   return (
     <header
@@ -62,6 +64,15 @@ export const Header: React.FC<HeaderProps> = ({
             {themeType === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
         )}
+
+        <button
+          onClick={lockSession}
+          className="p-1.5 rounded-xl border cursor-pointer hover:bg-red-500/10 hover:border-red-500/30 opacity-70 hover:opacity-100 transition-colors text-neutral-400 hover:text-red-500"
+          style={{ borderColor: 'var(--color-border-subtle)' }}
+          title="Oturumu Kilitle (Çıkış Yap)"
+        >
+          <Lock className="w-4 h-4" />
+        </button>
       </div>
     </header>
   );

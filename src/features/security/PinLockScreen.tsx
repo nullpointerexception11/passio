@@ -189,15 +189,15 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onUnlock }) => {
                   className="w-3.5 h-3.5 rounded-full transition-all duration-200 border"
                   style={{
                     backgroundColor: isFilled
-                      ? 'var(--color-text-primary)'
+                      ? 'var(--color-text-accent, #d97706)'
                       : 'transparent',
                     borderColor: isShaking
                       ? '#e5484d'
                       : isFilled
-                      ? 'var(--color-text-primary)'
+                      ? 'var(--color-text-accent, #d97706)'
                       : 'var(--color-border-subtle)',
-                    boxShadow: isFilled ? 'var(--shadows-subtle)' : 'none',
-                    transform: isFilled ? 'scale(1.15)' : 'scale(1)',
+                    boxShadow: isFilled ? '0 0 12px rgba(217, 119, 6, 0.4)' : 'none',
+                    transform: isFilled ? 'scale(1.2)' : 'scale(1)',
                   }}
                 />
               );
@@ -222,7 +222,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onUnlock }) => {
                 key={index}
                 onClick={() => !isBack && handleKeyPress(key)}
                 onMouseDown={() => isBack && handleKeyPress('back')}
-                className="w-14 h-14 rounded-full flex items-center justify-center text-lg transition-all duration-100 cursor-pointer border hover:scale-105 active:scale-95 mx-auto font-mono"
+                className="w-14 h-14 rounded-full flex items-center justify-center text-lg transition-all duration-200 cursor-pointer border hover:border-amber-500/40 hover:bg-amber-500/5 hover:scale-105 active:scale-95 mx-auto font-mono"
                 style={{
                   backgroundColor: 'var(--color-bg-surface)',
                   borderColor: 'var(--color-border-subtle)',

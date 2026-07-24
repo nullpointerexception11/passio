@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ThemeProvider } from './core/theme/ThemeContext';
+import { SessionProvider } from './core/session/SessionContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { AppRoutes } from './routes/AppRoutes';
 import { PinLockScreen } from './components/organisms/PinLockScreen';
@@ -56,16 +57,24 @@ export default function App() {
     setShowSplash(true);
   };
 
+  const handleLock = () => {
+    setIsUnlocked(false);
+    // Reset router hash to root so unlocking always lands on Ana Salon (/)
+    window.location.hash = '#/';
+  };
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        {!isUnlocked ? (
-          <PinLockScreen onUnlock={handleUnlock} />
-        ) : showSplash ? (
-          <SplashScreen onComplete={() => setShowSplash(false)} />
-        ) : (
-          <AppRoutes />
-        )}
+        <SessionProvider lockSession={handleLock}>
+          {!isUnlocked ? (
+            <PinLockScreen onUnlock={handleUnlock} />
+          ) : showSplash ? (
+            <SplashScreen onComplete={() => setShowSplash(false)} />
+          ) : (
+            <AppRoutes />
+          )}
+        </SessionProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

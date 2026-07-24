@@ -60,16 +60,17 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
             color: 'var(--color-text-primary)',
           }}
         >
-          <FileUp className="w-3.5 h-3.5 text-accent" />
+          <FileUp className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           <span>PDF Yükle</span>
         </button>
 
         <button
           onClick={toggleTheme}
-          className="p-1.5 rounded border cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+          className="p-1.5 rounded-lg border cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           style={{ borderColor: 'var(--color-border-subtle)' }}
+          title="Temayı Değiştir"
         >
-          {themeType === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          {themeType === 'light' ? <Moon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
         </button>
       </div>
     </header>

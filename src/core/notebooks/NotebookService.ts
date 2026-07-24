@@ -18,7 +18,8 @@ class NotebookDomainService {
    */
   public countWords(text: string): number {
     if (!text || !text.trim()) return 0;
-    return text.trim().split(/\s+/).length;
+    const cleanText = text.replace(/<[^>]*>/g, ' ');
+    return cleanText.trim().split(/\s+/).filter(Boolean).length;
   }
 
   /**

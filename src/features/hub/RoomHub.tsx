@@ -8,11 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import { PASSIO_ROOMS, IRoom } from '../../core/hub/RoomHubService';
 import { RoomIcon } from './RoomIcon';
 import { useTheme } from '../theme/ThemeContext';
-import { Sun, Moon } from 'lucide-react';
+import { useSession } from '../../core/session/SessionContext';
+import { Sun, Moon, Lock } from 'lucide-react';
 
 export const RoomHub: React.FC = () => {
   const navigate = useNavigate();
   const { themeType, toggleTheme } = useTheme();
+  const { lockSession } = useSession();
   const [hoveredRoom, setHoveredRoom] = useState<IRoom | null>(null);
   const [ringRadius, setRingRadius] = useState<number>(150);
 
@@ -81,21 +83,34 @@ export const RoomHub: React.FC = () => {
         </span>
       </div>
 
-      <button
-        onClick={toggleTheme}
-        className="absolute top-8 right-8 p-2.5 rounded-full border cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-        style={{
-          borderColor: 'var(--color-border-subtle)',
-          color: 'var(--color-text-primary)',
-        }}
-        title="Temayı Değiştir"
-      >
-        {themeType === 'light' ? (
-          <Moon className="w-4 h-4" />
-        ) : (
-          <Sun className="w-4 h-4" />
-        )}
-      </button>
+      <div className="absolute top-8 right-8 flex items-center gap-3">
+        <button
+          onClick={toggleTheme}
+          className="p-2.5 rounded-full border cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+          style={{
+            borderColor: 'var(--color-border-subtle)',
+            color: 'var(--color-text-primary)',
+          }}
+          title="Temayı Değiştir"
+        >
+          {themeType === 'light' ? (
+            <Moon className="w-4 h-4" />
+          ) : (
+            <Sun className="w-4 h-4" />
+          )}
+        </button>
+
+        <button
+          onClick={lockSession}
+          className="p-2.5 rounded-full border cursor-pointer transition-colors hover:bg-red-500/10 hover:border-red-500/30 opacity-70 hover:opacity-100 text-neutral-400 hover:text-red-500"
+          style={{
+            borderColor: 'var(--color-border-subtle)',
+          }}
+          title="Oturumu Kilitle (Çıkış Yap)"
+        >
+          <Lock className="w-4 h-4" />
+        </button>
+      </div>
 
       <div className="relative w-[440px] h-[440px] flex items-center justify-center">
         <div 

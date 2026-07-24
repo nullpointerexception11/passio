@@ -27,7 +27,7 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({ editor }) => {
 
   return (
     <div
-      className="flex items-center gap-1 p-1.5 rounded-xl border mb-6 self-center select-none backdrop-blur-md shadow-sm transition-all"
+      className="sticky top-2 z-30 flex items-center gap-1 p-1.5 rounded-2xl border mb-6 self-center select-none backdrop-blur-md shadow-md transition-all"
       style={{
         backgroundColor: 'var(--color-bg-surface)',
         borderColor: 'var(--color-border-subtle)',

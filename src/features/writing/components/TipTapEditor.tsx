@@ -39,8 +39,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
     content: initialContent,
     onUpdate: ({ editor }) => {
       isInternalUpdate.current = true;
-      const text = editor.getText();
-      onChange(text);
+      const html = editor.getHTML();
+      onChange(html);
     },
     editorProps: {
       attributes: {
@@ -52,7 +52,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   // Sync editor content when initialContent changes externally
   useEffect(() => {
     if (editor && !isInternalUpdate.current) {
-      if (editor.getText() !== initialContent && initialContent) {
+      if (editor.getHTML() !== initialContent && initialContent) {
         editor.commands.setContent(initialContent);
       }
     }
